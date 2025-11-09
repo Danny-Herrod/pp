@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(start chrome index.html)",
+      "Bash(start firefox index.html)",
+      "Bash(start msedge index.html)",
+      "Bash(dir:*)",
+      "Bash(start msedge \"c:\\Users\\Danilo Herrera\\Desktop\\rebreand\\index.html\")",
+      "Bash(start msedge \"c:\\Users\\Danilo Herrera\\Desktop\\rebreand\\portafolio.html\")",
+      "Bash(mv:*)",
+      "Bash(npm install:*)",
+      "Bash(npm run build:*)",
+      "Bash(start msedge \"c:\\Users\\Danilo Herrera\\Desktop\\rebreand\\404.html\")",
+      "Bash(rm:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
