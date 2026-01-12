@@ -2,12 +2,328 @@
 (function() {
     'use strict';
 
+    // ========================================
+    // VARIABLES GLOBALES
+    // ========================================
+
+    // Estado global de región
+    let detectedRegion = null;
+    let regionSource = null; // 'cache', 'api', 'manual', 'unknown'
+    let isDetecting = false;
+
+    // Constantes
+    const STORAGE_KEY = 'xinocore_whatsapp_region';
+    const CACHE_DURATION = 30 * 24 * 60 * 60 * 1000; // 30 días
+
+    // ========================================
+    // FUNCIONES DE DETECCIÓN DE REGIÓN
+    // ========================================
+
+    /**
+     * Obtener región desde localStorage (caché)
+     */
+    function getRegionFromCache() {
+        try {
+            const cached = localStorage.getItem(STORAGE_KEY);
+            if (!cached) return null;
+
+            const data = JSON.parse(cached);
+            const now = Date.now();
+
+            // Verificar si el caché expiró
+            if (now - data.timestamp > CACHE_DURATION) {
+                localStorage.removeItem(STORAGE_KEY);
+                return null;
+            }
+
+            return data.region;
+        } catch (e) {
+            console.warn('Error reading region cache:', e);
+            return null;
+        }
+    }
+
+    /**
+     * Guardar región en localStorage
+     */
+    function saveRegionToCache(region, source) {
+        try {
+            const data = {
+                region: region,
+                source: source,
+                timestamp: Date.now()
+            };
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        } catch (e) {
+            console.warn('Error saving region cache:', e);
+        }
+    }
+
+    /**
+     * Detectar región mediante API de geolocalización
+     */
+    async function detectRegionFromAPI() {
+        if (typeof XinocoreConfig === 'undefined' || !XinocoreConfig.geolocation) {
+            console.log('[WhatsApp Region] ❌ XinocoreConfig no está definido');
+            return null;
+        }
+
+        const config = XinocoreConfig.geolocation;
+
+        if (!config.enabled) {
+            console.log('[WhatsApp Region] ⚠️ Geolocalización deshabilitada en config');
+            return null;
+        }
+
+        try {
+            console.log('[WhatsApp Region] 🌐 Llamando a API:', config.api.url);
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), config.api.timeout);
+
+            const response = await fetch(config.api.url, {
+                signal: controller.signal,
+                method: 'GET',
+                headers: { 'Accept': 'application/json' }
+            });
+
+            clearTimeout(timeoutId);
+
+            if (!response.ok) {
+                throw new Error(`API returned ${response.status}`);
+            }
+
+            const data = await response.json();
+            console.log('[WhatsApp Region] 📡 Respuesta de API:', data);
+
+            const countryCode = data.country_code || data.country;
+
+            if (!countryCode) {
+                throw new Error('No country code in response');
+            }
+
+            console.log('[WhatsApp Region] 🌍 Código de país detectado:', countryCode);
+
+            // Mapear código de país a región
+            const mapping = config.countryMapping;
+            const region = mapping[countryCode] || null;
+
+            console.log('[WhatsApp Region] 🗺️ Región mapeada:', region || 'No soportada');
+
+            return region;
+
+        } catch (error) {
+            if (error.name === 'AbortError') {
+                console.warn('[WhatsApp Region] ⏱️ Timeout de API (>3s)');
+            } else {
+                console.warn('[WhatsApp Region] ❌ Error en API:', error.message);
+            }
+            return null;
+        }
+    }
+
+    /**
+     * Detectar región (flujo completo con caché)
+     */
+    async function detectRegion() {
+        if (isDetecting) return;
+
+        console.log('[WhatsApp Region] 🔍 Iniciando detección de región...');
+        isDetecting = true;
+
+        // 1. Intentar caché primero
+        const cached = getRegionFromCache();
+        if (cached) {
+            detectedRegion = cached;
+            regionSource = 'cache';
+            isDetecting = false;
+            console.log('[WhatsApp Region] ✅ Región encontrada en caché:', cached);
+            return cached;
+        }
+        console.log('[WhatsApp Region] ℹ️ No hay región en caché, llamando a API...');
+
+        // 2. Intentar API
+        const apiRegion = await detectRegionFromAPI();
+        if (apiRegion) {
+            detectedRegion = apiRegion;
+            regionSource = 'api';
+            saveRegionToCache(apiRegion, 'api');
+            isDetecting = false;
+            console.log('[WhatsApp Region] ✅ Región detectada por API:', apiRegion);
+            return apiRegion;
+        }
+        console.log('[WhatsApp Region] ❌ API falló o país no soportado');
+
+        // 3. Fallback: región desconocida (mostrar selector)
+        detectedRegion = null;
+        regionSource = 'unknown';
+        isDetecting = false;
+        console.log('[WhatsApp Region] ⚠️ Mostrando selector manual');
+        return null;
+    }
+
+    /**
+     * Obtener número de WhatsApp según región
+     */
+    function getWhatsAppNumber(region) {
+        console.log('[WhatsApp Region] 📞 Obteniendo número para región:', region);
+
+        if (typeof XinocoreConfig === 'undefined' || !XinocoreConfig.contact.whatsapp) {
+            console.log('[WhatsApp Region] ⚠️ Usando número fallback (config no definido)');
+            return '50587248446'; // Fallback al número original
+        }
+
+        const config = XinocoreConfig.contact.whatsapp;
+
+        // Si no hay región, usar default
+        if (!region || !config[region]) {
+            region = config.default;
+            console.log('[WhatsApp Region] ⚠️ Región no válida, usando default:', region);
+        }
+
+        const number = config[region].number;
+        console.log('[WhatsApp Region] ✅ Número seleccionado:', number, '(' + config[region].display + ')');
+        return number;
+    }
+
+    /**
+     * Establecer región manualmente (desde selector UI)
+     */
+    function setRegionManually(region) {
+        detectedRegion = region;
+        regionSource = 'manual';
+        saveRegionToCache(region, 'manual');
+
+        // Ocultar selector de región si está visible
+        hideRegionSelector();
+    }
+
+    // ========================================
+    // UI DEL SELECTOR DE REGIÓN
+    // ========================================
+
+    /**
+     * Mostrar selector de región en el modal
+     */
+    function showRegionSelector() {
+        const modal = document.getElementById('whatsapp-modal');
+        if (!modal) return;
+
+        const modalContent = modal.querySelector('.whatsapp-modal-content');
+        if (!modalContent) return;
+
+        // Verificar si ya existe el selector
+        let selector = modalContent.querySelector('.region-selector');
+
+        if (!selector) {
+            // Crear selector
+            selector = document.createElement('div');
+            selector.className = 'region-selector';
+
+            const config = XinocoreConfig.contact.whatsapp;
+
+            selector.innerHTML = `
+                <div class="region-selector-header">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                    </svg>
+                    <h4>Selecciona tu ubicación</h4>
+                    <p>Para enviarte al número correcto de WhatsApp</p>
+                </div>
+                <div class="region-buttons">
+                    <button class="region-btn" data-region="nicaragua">
+                        <span class="region-flag">${config.nicaragua.flag}</span>
+                        <span class="region-name">Nicaragua</span>
+                        <span class="region-phone">${config.nicaragua.display}</span>
+                    </button>
+                    <button class="region-btn" data-region="usa">
+                        <span class="region-flag">${config.usa.flag}</span>
+                        <span class="region-name">Estados Unidos</span>
+                        <span class="region-phone">${config.usa.display}</span>
+                    </button>
+                </div>
+            `;
+
+            // Insertar antes del formulario
+            const modalBody = modalContent.querySelector('.whatsapp-modal-body');
+            if (modalBody) {
+                modalBody.insertBefore(selector, modalBody.firstChild);
+            }
+
+            // Agregar event listeners a los botones
+            const regionButtons = selector.querySelectorAll('.region-btn');
+            regionButtons.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const region = this.getAttribute('data-region');
+                    setRegionManually(region);
+
+                    // Feedback visual
+                    regionButtons.forEach(b => b.classList.remove('selected'));
+                    this.classList.add('selected');
+
+                    // Animar salida del selector
+                    if (typeof gsap !== 'undefined') {
+                        gsap.to(selector, {
+                            opacity: 0,
+                            y: -20,
+                            duration: 0.3,
+                            onComplete: () => {
+                                selector.style.display = 'none';
+                            }
+                        });
+                    } else {
+                        selector.style.display = 'none';
+                    }
+                });
+            });
+        }
+
+        // Mostrar selector con animación
+        selector.style.display = 'block';
+        if (typeof gsap !== 'undefined') {
+            gsap.fromTo(selector,
+                { opacity: 0, y: 20 },
+                { opacity: 1, y: 0, duration: 0.4, ease: 'back.out(1.7)' }
+            );
+        }
+    }
+
+    /**
+     * Ocultar selector de región
+     */
+    function hideRegionSelector() {
+        const selector = document.querySelector('.region-selector');
+        if (selector) {
+            if (typeof gsap !== 'undefined') {
+                gsap.to(selector, {
+                    opacity: 0,
+                    y: -20,
+                    duration: 0.3,
+                    onComplete: () => {
+                        selector.style.display = 'none';
+                    }
+                });
+            } else {
+                selector.style.display = 'none';
+            }
+        }
+    }
+
+    // ========================================
+    // INICIALIZACIÓN DEL MODAL
+    // ========================================
+
     // Wait for GSAP to load
-    function initWhatsAppModal() {
+    async function initWhatsAppModal() {
+        console.log('[WhatsApp Region] 🚀 Inicializando WhatsApp Modal');
+        // Iniciar detección de región de forma asíncrona (no bloquea)
+        detectRegion();
         if (typeof gsap === 'undefined') {
+            console.log('[WhatsApp Region] ⏳ Esperando GSAP...');
             setTimeout(initWhatsAppModal, 100);
             return;
         }
+        console.log('[WhatsApp Region] ✅ GSAP cargado, configurando eventos');
 
         const modal = document.getElementById('whatsapp-modal');
         const openBtn = document.getElementById('whatsapp-float-btn');
@@ -19,11 +335,10 @@
         const shootingStars = modal.querySelectorAll('.shooting-star');
         const whatsappIcon = modal.querySelector('.whatsapp-icon-large');
 
-        // WhatsApp number (sin espacios para la URL)
-        const whatsappNumber = '50587248446';
-
         // Función para abrir el modal con animaciones GSAP
         function openModal() {
+            console.log('[WhatsApp Region] 🎯 Abriendo modal, región actual:', detectedRegion);
+
             // Guardar posición de scroll actual
             const scrollY = window.scrollY;
             document.body.style.top = `-${scrollY}px`;
@@ -31,6 +346,18 @@
             modal.classList.add('active');
             document.body.classList.add('modal-open');
             document.documentElement.classList.add('modal-open');
+
+            // Esperar un momento para que la detección automática termine
+            // Solo mostrar selector si después de 500ms aún no hay región detectada
+            setTimeout(() => {
+                console.log('[WhatsApp Region] ⏰ Timeout 500ms - Región detectada:', detectedRegion);
+                if (!detectedRegion && modal.classList.contains('active')) {
+                    console.log('[WhatsApp Region] 🎨 Mostrando selector de región');
+                    showRegionSelector();
+                } else {
+                    console.log('[WhatsApp Region] ✅ Región ya detectada, NO mostrando selector');
+                }
+            }, 500);
 
             // Timeline principal para la apertura
             const tl = gsap.timeline({
@@ -256,6 +583,8 @@
 
             // Crear URL de WhatsApp ANTES de cualquier animación
             const encodedMessage = encodeURIComponent(message);
+            // Obtener número según región detectada
+            const whatsappNumber = getWhatsAppNumber(detectedRegion);
             const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodedMessage}`;
 
             // Abrir WhatsApp INMEDIATAMENTE (crítico para iOS)
@@ -329,6 +658,24 @@
             });
         }
     }
+
+    // Exponer funciones y variables globalmente para uso en otros scripts
+    window.detectedRegion = detectedRegion;
+    window.getWhatsAppNumber = getWhatsAppNumber;
+
+    // Observador para actualizar window.detectedRegion cuando cambie
+    const originalDetectRegion = detectRegion;
+    detectRegion = async function() {
+        const result = await originalDetectRegion();
+        window.detectedRegion = detectedRegion;
+        return result;
+    };
+
+    const originalSetRegionManually = setRegionManually;
+    setRegionManually = function(region) {
+        originalSetRegionManually(region);
+        window.detectedRegion = detectedRegion;
+    };
 
     // Inicializar cuando el DOM esté listo
     if (document.readyState === 'loading') {

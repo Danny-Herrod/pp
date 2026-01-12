@@ -29,15 +29,14 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // ========================================
-// HIPERESPACIO OPTIMIZADO (más rápido y eficiente)
+// HIPERESPACIO OPTIMIZADO (visual original, performance mejorado)
 // ========================================
 function initHyperspaceEntry() {
     const hero = document.querySelector('.hero');
     if (!hero) return;
 
-    // Solo ejecutar en desktop para mejor rendimiento
     const isMobile = window.innerWidth < 768;
-    const lineCount = isMobile ? 15 : 25; // Reducido aún más
+    const lineCount = isMobile ? 15 : 25; // Mantener cantidad original
 
     const overlay = document.createElement('div');
     overlay.className = 'hyperspace-overlay';
@@ -47,9 +46,8 @@ function initHyperspaceEntry() {
     `;
     hero.prepend(overlay);
 
-    // Reducido a menos líneas para mejor rendimiento
     const container = overlay.querySelector('.warp-lines-container');
-    const fragment = document.createDocumentFragment(); // Usar fragment para mejor rendimiento
+    const fragment = document.createDocumentFragment();
 
     for (let i = 0; i < lineCount; i++) {
         const line = document.createElement('div');
@@ -62,28 +60,30 @@ function initHyperspaceEntry() {
             top: ${Math.random() * 100}%;
             left: ${Math.random() * 100}%;
             opacity: ${Math.random() * 0.6 + 0.3};
-            will-change: transform;
+            will-change: transform, opacity;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            transform: translateZ(0);
         `;
         fragment.appendChild(line);
     }
     container.appendChild(fragment);
 
     const tl = gsap.timeline({
-        defaults: { ease: "power2.out" } // Ease por defecto más eficiente
+        defaults: { force3D: true, ease: "power2.out" }
     });
 
-    // Flash más rápido
+    // Flash original
     tl.to('.hyperspace-flash', { opacity: 1, duration: 0.1 })
       .to('.hyperspace-flash', { opacity: 0, duration: 0.15 });
 
-    // Líneas más rápidas y eficientes
+    // Líneas originales pero optimizadas con GPU
     tl.from('.warp-line', {
         scaleY: 0,
         y: -800,
         duration: 0.8,
         stagger: { each: 0.008, from: "random" },
-        ease: "power2.out",
-        force3D: true // Forzar aceleración GPU
+        ease: "power2.out"
     }, 0.1);
 
     tl.to('.warp-line', {
@@ -91,8 +91,7 @@ function initHyperspaceEntry() {
         y: 1200,
         duration: 0.6,
         stagger: { each: 0.006, from: "random" },
-        ease: "power2.in",
-        force3D: true
+        ease: "power2.in"
     }, 0.7);
 
     tl.to('.hyperspace-overlay', {
@@ -100,16 +99,12 @@ function initHyperspaceEntry() {
         duration: 0.25,
         onComplete: () => {
             overlay.remove();
-            // Limpiar will-change después de la animación
-            document.querySelectorAll('.warp-line').forEach(line => {
-                line.style.willChange = 'auto';
-            });
         }
     }, 1.2);
 }
 
 // ========================================
-// HERO ÉPICO PERO LIMPIO
+// HERO ÉPICO PERO LIMPIO - OPTIMIZADO
 // ========================================
 function initEpicHero() {
     const heroTitle = document.querySelector('.hero-title');
@@ -117,51 +112,116 @@ function initEpicHero() {
     const heroSubtitle = document.querySelector('.hero-subtitle');
     const heroButtons = document.querySelectorAll('.hero-cta .btn');
 
-    const tl = gsap.timeline({ delay: 1.8 });
+    const isMobile = window.innerWidth < 768;
+    const tl = gsap.timeline({
+        delay: 1.8,
+        defaults: {
+            force3D: true, // Forzar aceleración GPU en todas las animaciones
+            transformPerspective: 1000
+        }
+    });
 
-    // Título con explosión controlada
+    // Título con explosión controlada - OPTIMIZADO
     if (heroTitle) {
-        gsap.set(heroTitle, { opacity: 1 });
-        tl.from(heroTitle, {
-            scale: 3,
-            opacity: 0,
-            filter: "blur(30px)",
-            duration: 1,
-            ease: "power3.out"
+        gsap.set(heroTitle, {
+            opacity: 1,
+            willChange: 'transform, opacity' // Pre-optimizar
         });
+
+        // En móvil: animación más simple sin blur
+        if (isMobile) {
+            tl.from(heroTitle, {
+                scale: 2.5,
+                opacity: 0,
+                y: -50,
+                duration: 0.9,
+                ease: "power3.out",
+                onComplete: () => {
+                    heroTitle.style.willChange = 'auto'; // Limpiar después
+                }
+            });
+        } else {
+            // En desktop: efecto completo pero optimizado
+            tl.from(heroTitle, {
+                scale: 3,
+                opacity: 0,
+                filter: "blur(20px)", // Reducido de 30px a 20px
+                duration: 1,
+                ease: "power3.out",
+                onComplete: () => {
+                    heroTitle.style.willChange = 'auto';
+                }
+            });
+        }
     }
 
-    // Texto gradiente con rotación simple
+    // Texto gradiente con rotación simple - OPTIMIZADO
     if (gradientText) {
-        tl.from(gradientText, {
-            scale: 0.5,
-            rotationY: 180,
-            opacity: 0,
-            duration: 0.8,
-            ease: "back.out(1.5)"
-        }, "-=0.6");
+        gsap.set(gradientText, {
+            willChange: 'transform, opacity',
+            transformStyle: 'preserve-3d'
+        });
+
+        // En móvil: sin rotación 3D
+        if (isMobile) {
+            tl.from(gradientText, {
+                scale: 0.5,
+                opacity: 0,
+                y: 30,
+                duration: 0.7,
+                ease: "back.out(1.5)",
+                onComplete: () => {
+                    gradientText.style.willChange = 'auto';
+                }
+            }, "-=0.5");
+        } else {
+            // En desktop: rotación optimizada
+            tl.from(gradientText, {
+                scale: 0.5,
+                rotationY: 180,
+                opacity: 0,
+                duration: 0.8,
+                ease: "back.out(1.5)",
+                onComplete: () => {
+                    gradientText.style.willChange = 'auto';
+                }
+            }, "-=0.6");
+        }
     }
 
-    // Subtítulo simple
+    // Subtítulo simple - OPTIMIZADO
     if (heroSubtitle) {
+        gsap.set(heroSubtitle, { willChange: 'transform, opacity' });
         tl.from(heroSubtitle, {
             y: 30,
             opacity: 0,
             duration: 0.6,
-            ease: "power2.out"
+            ease: "power2.out",
+            onComplete: () => {
+                heroSubtitle.style.willChange = 'auto';
+            }
         }, "-=0.4");
     }
 
-    // Botones con entrada limpia - mantener tamaño original
+    // Botones con entrada limpia - OPTIMIZADO
     if (heroButtons.length > 0) {
-        // Asegurar visibilidad inicial
-        gsap.set(heroButtons, { opacity: 1, scale: 1, clearProps: "transform" });
+        gsap.set(heroButtons, {
+            opacity: 1,
+            scale: 1,
+            clearProps: "transform",
+            willChange: 'transform, opacity'
+        });
         tl.from(heroButtons, {
             y: 30,
             opacity: 0,
             duration: 0.6,
             stagger: 0.15,
-            ease: "back.out(1.7)"
+            ease: "back.out(1.7)",
+            onComplete: () => {
+                heroButtons.forEach(btn => {
+                    btn.style.willChange = 'auto';
+                });
+            }
         }, "-=0.3");
     }
 }

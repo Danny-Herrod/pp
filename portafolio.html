@@ -3,8 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Portafolio de proyectos de Xinocore - Desarrollo web en Jinotega, Nicaragua. Mira nuestros trabajos completados.">
+    <meta name="description" content="Descubre nuestros proyectos de desarrollo web. Páginas, menús digitales y catálogos para negocios locales.">
+
+    <!-- Open Graph / Facebook / WhatsApp -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://xinocore.com/portafolio.html">
+    <meta property="og:site_name" content="Xinocore">
+    <meta property="og:title" content="Portfolio – Xinocore | Web Projects">
+    <meta property="og:description" content="Explore our web development projects. Websites, digital menus, and catalogs for local businesses.">
+    <meta property="og:image" content="https://xinocore.com/assets/images/og/og-portfolio.jpg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Xinocore - Portfolio of Projects">
+    <meta property="og:locale" content="en_US">
+    <meta property="og:locale:alternate" content="es_ES">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Portfolio – Xinocore | Web Projects">
+    <meta name="twitter:description" content="Explore our web development projects. Websites, digital menus, and catalogs for local businesses.">
+    <meta name="twitter:image" content="https://xinocore.com/assets/images/og/og-portfolio.jpg">
+
     <title>Portafolio - Xinocore | Desarrollo Web en Jinotega</title>
+    <link rel="icon" type="image/png" href="assets/images/favicons/portafolio.png">
 
     <!-- Preload recursos críticos -->
     <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" as="script">
@@ -22,6 +43,8 @@
     <link rel="stylesheet" href="assets/css/core.effects.css?v=3.0">
     <!-- Components -->
     <link rel="stylesheet" href="assets/css/components.whatsapp.css?v=1.0">
+    <link rel="stylesheet" href="assets/css/components.language-selector.css?v=1.0">
+    <link rel="stylesheet" href="assets/css/components.process-carousel.css?v=1.0">
 </head>
 <body>
     <!-- Header -->
@@ -54,15 +77,25 @@
                 </button>
 
                 <nav class="nav" id="nav">
-                    <a href="index.html#inicio" class="nav-link">Inicio</a>
-                    <a href="index.html#servicios" class="nav-link">Servicios</a>
-                    <a href="portafolio.html" class="nav-link active">Portafolio</a>
-                    <a href="index.html#nosotros" class="nav-link">Sobre Nosotros</a>
-                    <a href="index.html#contacto" class="nav-link btn-contact">Contacto</a>
+                    <a href="index.html#inicio" class="nav-link" data-i18n="nav.home">Inicio</a>
+                    <a href="index.html#servicios" class="nav-link" data-i18n="nav.services">Servicios</a>
+                    <a href="portafolio.html" class="nav-link active" data-i18n="nav.portfolio">Portafolio</a>
+                    <a href="index.html#nosotros" class="nav-link" data-i18n="nav.about">Sobre Nosotros</a>
+                    <a href="index.html#contacto" class="nav-link btn-contact" data-i18n="nav.contact">Contacto</a>
                 </nav>
             </div>
         </div>
     </header>
+
+    <!-- Language Selector -->
+    <div class="language-selector">
+        <button class="lang-selector-btn" data-lang="es" aria-label="Español">
+            🇪🇸 ES
+        </button>
+        <button class="lang-selector-btn" data-lang="en" aria-label="English">
+            🇺🇸 EN
+        </button>
+    </div>
 
     <!-- Portfolio Hero -->
     <section class="portfolio-hero">
@@ -74,9 +107,9 @@
         <div class="container">
             <div class="portfolio-hero-content">
                 <h1 class="portfolio-hero-title">
-                    <span class="gradient-text">Proyectos creados</span>
+                    <span class="gradient-text" data-i18n="portfolio.hero_title">Proyectos creados</span>
                 </h1>
-                <p class="portfolio-hero-subtitle">
+                <p class="portfolio-hero-subtitle" data-i18n="portfolio.hero_subtitle">
                     Descubre cómo hemos ayudado a negocios locales a brillar en el mundo digital.
                     Cada proyecto es una historia de transformación y éxito.
                 </p>
@@ -84,15 +117,11 @@
         </div>
     </section>
 
-    <!-- Filters -->
+    <!-- Filters - Generated dynamically from project categories -->
     <div class="filters-wrapper" id="filters-wrapper">
         <div class="container">
             <div class="filters">
-                <button class="filter-btn active" data-filter="all">Todos</button>
-                <button class="filter-btn" data-filter="web">Páginas Web</button>
-                <button class="filter-btn" data-filter="menu">Menús Digitales</button>
-                <button class="filter-btn" data-filter="catalog">Catálogos</button>
-                <button class="filter-btn" data-filter="card">Tarjetas</button>
+                <!-- Los filtros se generan dinámicamente desde main.js basándose en categoryLabel del JSON -->
             </div>
         </div>
     </div>
@@ -110,8 +139,8 @@
     <section class="process-section">
         <div class="container">
             <div class="section-header">
-                <h2 class="section-title">Cómo Trabajamos</h2>
-                <p class="section-subtitle">Un proceso simple y efectivo para tu proyecto</p>
+                <h2 class="section-title" data-i18n="portfolio.process_title">Cómo Trabajamos</h2>
+                <p class="section-subtitle" data-i18n="portfolio.process_subtitle">Un proceso simple y efectivo para tu proyecto</p>
             </div>
 
             <div class="process-grid">
@@ -122,8 +151,8 @@
                             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
                         </svg>
                     </div>
-                    <h3 class="process-title">Consulta</h3>
-                    <p class="process-description">Conversamos sobre tu negocio, objetivos y necesidades específicas.</p>
+                    <h3 class="process-title" data-i18n="portfolio.process1_title">Consulta</h3>
+                    <p class="process-description" data-i18n="portfolio.process1_text">Conversamos sobre tu negocio, objetivos y necesidades específicas.</p>
                 </div>
 
                 <div class="process-step" data-aos>
@@ -133,8 +162,8 @@
                             <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
                         </svg>
                     </div>
-                    <h3 class="process-title">Diseño</h3>
-                    <p class="process-description">Creamos un diseño personalizado que refleje la identidad de tu marca.</p>
+                    <h3 class="process-title" data-i18n="portfolio.process2_title">Diseño</h3>
+                    <p class="process-description" data-i18n="portfolio.process2_text">Creamos un diseño personalizado que refleje la identidad de tu marca.</p>
                 </div>
 
                 <div class="process-step" data-aos>
@@ -145,8 +174,8 @@
                             <polyline points="8 6 2 12 8 18"/>
                         </svg>
                     </div>
-                    <h3 class="process-title">Desarrollo</h3>
-                    <p class="process-description">Construimos tu sitio con las mejores prácticas y tecnologías modernas.</p>
+                    <h3 class="process-title" data-i18n="portfolio.process3_title">Desarrollo</h3>
+                    <p class="process-description" data-i18n="portfolio.process3_text">Construimos tu sitio con las mejores prácticas y tecnologías modernas.</p>
                 </div>
 
                 <div class="process-step" data-aos>
@@ -157,8 +186,8 @@
                             <polyline points="22 4 12 14.01 9 11.01"/>
                         </svg>
                     </div>
-                    <h3 class="process-title">Lanzamiento</h3>
-                    <p class="process-description">Publicamos tu proyecto y te capacitamos para administrarlo fácilmente.</p>
+                    <h3 class="process-title" data-i18n="portfolio.process4_title">Lanzamiento</h3>
+                    <p class="process-description" data-i18n="portfolio.process4_text">Publicamos tu proyecto y te capacitamos para administrarlo fácilmente.</p>
                 </div>
             </div>
         </div>
@@ -172,11 +201,11 @@
         </div>
         <div class="container">
             <div class="cta-content">
-                <h2 class="cta-title">¿Listo para Tu Proyecto?</h2>
-                <p class="cta-text">
+                <h2 class="cta-title" data-i18n="portfolio.cta_title">¿Listo para Tu Proyecto?</h2>
+                <p class="cta-text" data-i18n="portfolio.cta_text">
                     Tu negocio merece una web que brille. Creamos algo único y funcional, hecho a tu medida
                 </p>
-                <a href="index.html#contacto" class="btn btn-primary btn-large">Iniciar Proyecto</a>
+                <a href="index.html#contacto" class="btn btn-primary btn-large" data-i18n="portfolio.cta_button">Iniciar Proyecto</a>
             </div>
         </div>
     </section>
@@ -204,44 +233,44 @@
                         </div>
                         <span>Xinocore</span>
                     </div>
-                    <p class="footer-description">
-                        Impulsando negocios locales hacia el futuro digital desde Jinotega, Nicaragua.
+                    <p class="footer-description" data-i18n="footer.description">
+                        Impulsando negocios locales hacia el futuro digital.
                     </p>
                 </div>
 
                 <div class="footer-col">
-                    <h4 class="footer-title">Enlaces Rápidos</h4>
+                    <h4 class="footer-title" data-i18n="footer.quick_links">Enlaces Rápidos</h4>
                     <ul class="footer-links">
-                        <li><a href="index.html#inicio">Inicio</a></li>
-                        <li><a href="index.html#servicios">Servicios</a></li>
-                        <li><a href="portafolio.html">Portafolio</a></li>
-                        <li><a href="index.html#nosotros">Sobre Nosotros</a></li>
-                        <li><a href="index.html#contacto">Contacto</a></li>
+                        <li><a href="index.html#inicio" data-i18n="nav.home">Inicio</a></li>
+                        <li><a href="index.html#servicios" data-i18n="nav.services">Servicios</a></li>
+                        <li><a href="portafolio.html" data-i18n="nav.portfolio">Portafolio</a></li>
+                        <li><a href="index.html#nosotros" data-i18n="nav.about">Sobre Nosotros</a></li>
+                        <li><a href="index.html#contacto" data-i18n="nav.contact">Contacto</a></li>
                     </ul>
                 </div>
 
                 <div class="footer-col">
-                    <h4 class="footer-title">Servicios</h4>
+                    <h4 class="footer-title" data-i18n="footer.services">Servicios</h4>
                     <ul class="footer-links">
-                        <li><a href="index.html#servicios">Páginas Web</a></li>
-                        <li><a href="index.html#servicios">Menús Digitales</a></li>
-                        <li><a href="index.html#servicios">Catálogos</a></li>
-                        <li><a href="index.html#servicios">Tarjetas Digitales</a></li>
+                        <li><a href="index.html#servicios" data-i18n="footer.services_web">Páginas Web</a></li>
+                        <li><a href="index.html#servicios" data-i18n="footer.services_menu">Menús Digitales</a></li>
+                        <li><a href="index.html#servicios" data-i18n="footer.services_catalog">Catálogos</a></li>
+                        <li><a href="index.html#servicios" data-i18n="footer.services_card">Tarjetas Digitales</a></li>
                     </ul>
                 </div>
 
                 <div class="footer-col">
-                    <h4 class="footer-title">Contacto</h4>
+                    <h4 class="footer-title" data-i18n="footer.contact">Contacto</h4>
                     <ul class="footer-contact">
-                        <li>Jinotega, Nicaragua</li>
-                        <li>Dannyherrod@xinocore.com</li>
-                        <li>+505 8724 8446</li>
+                        <li data-contact="location">Jinotega, Nicaragua</li>
+                        <li data-contact="email">Dannyherrod@xinocore.com</li>
+                        <li data-contact="phone">+505 8724 8446</li>
                     </ul>
                 </div>
             </div>
 
             <div class="footer-bottom">
-                <p>&copy; 2025 Xinocore. Todos los derechos reservados.</p>
+                <p data-i18n="footer.copyright">&copy; 2026 Xinocore. Todos los derechos reservados.</p>
             </div>
         </div>
     </footer>
@@ -322,17 +351,22 @@
     <!-- Configuration Script - Load First -->
     <script src="assets/js/config.js?v=1.0"></script>
 
+    <!-- i18n System -->
+    <script src="assets/js/i18n.js?v=1.0"></script>
+
     <!-- GSAP Library - Optimizado con defer -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js" defer></script>
+
+    <!-- Components -->
+    <script src="assets/js/components.whatsapp.js?v=1.0" defer></script>
+    <script src="assets/js/components.contact-region.js?v=1.0" defer></script>
+    <script src="assets/js/components.process-carousel.js?v=1.0" defer></script>
 
     <!-- Core Scripts -->
     <script src="assets/js/core.animations.js?v=2.0" defer></script>
     <script src="assets/js/core.effects.js?v=2.0" defer></script>
     <script src="assets/js/main.js?v=2.0" defer></script>
-
-    <!-- Components -->
-    <script src="assets/js/components.whatsapp.js?v=1.0" defer></script>
 
     <!-- Logo Animation Script -->
     <style>

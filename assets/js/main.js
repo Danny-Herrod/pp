@@ -24,16 +24,32 @@ document.addEventListener('DOMContentLoaded', function() {
             this.classList.toggle('active');
             nav.classList.toggle('active');
             document.body.style.overflow = nav.classList.contains('active') ? 'hidden' : '';
+
+            // Ocultar/mostrar selector de idiomas cuando se abre/cierra el menú (sin animación para evitar lag en iOS)
+            const languageSelector = document.querySelector('.language-selector');
+            if (languageSelector) {
+                if (nav.classList.contains('active')) {
+                    languageSelector.style.display = 'none';
+                } else {
+                    languageSelector.style.display = 'flex';
+                }
+            }
         });
     }
 
     // Close menu when clicking a link
     navLinks.forEach(link => {
-        link.addEventListener('click', function(e) {
+        link.addEventListener('click', function() {
             if (window.innerWidth < 768) {
                 hamburger.classList.remove('active');
                 nav.classList.remove('active');
                 document.body.style.overflow = '';
+
+                // Mostrar selector de idiomas
+                const languageSelector = document.querySelector('.language-selector');
+                if (languageSelector) {
+                    languageSelector.style.display = 'flex';
+                }
             }
         });
     });
@@ -45,6 +61,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 hamburger.classList.remove('active');
                 nav.classList.remove('active');
                 document.body.style.overflow = '';
+
+                // Mostrar selector de idiomas
+                const languageSelector = document.querySelector('.language-selector');
+                if (languageSelector) {
+                    languageSelector.style.display = 'flex';
+                }
             }
         }
     });
@@ -455,6 +477,27 @@ function renderProjectsInPortfolio() {
     });
 
     console.log('✅ Projects rendered in portafolio.html:', projectsData.length);
+
+    // Generar filtros dinámicos solo si no existen todavía
+    const existingFilters = document.querySelectorAll('.filter-btn');
+    if (existingFilters.length === 0) {
+        generateDynamicFilters();
+    }
+}
+
+// ========================================
+// I18N HELPER - GET LOCALIZED FIELD
+// ========================================
+function getLocalizedField(project, fieldName) {
+    const currentLang = window.i18n ? window.i18n.getCurrentLanguage() : 'es';
+    const localizedFieldName = `${fieldName}_en`;
+
+    // If English and the English field exists, use it; otherwise fall back to Spanish
+    if (currentLang === 'en' && project[localizedFieldName]) {
+        return project[localizedFieldName];
+    }
+
+    return project[fieldName];
 }
 
 // ========================================
@@ -506,9 +549,9 @@ function createProjectCard(project, cardClass) {
                 }
             </div>
             <div class="portfolio-info">
-                <span class="portfolio-category">${project.categoryLabel}</span>
-                <h3 class="portfolio-title">${project.title}</h3>
-                <p class="portfolio-description">${project.description}</p>
+                <span class="portfolio-category">${getLocalizedField(project, 'categoryLabel')}</span>
+                <h3 class="portfolio-title">${getLocalizedField(project, 'title')}</h3>
+                <p class="portfolio-description">${getLocalizedField(project, 'description')}</p>
             </div>
         `;
     } else {
@@ -530,9 +573,9 @@ function createProjectCard(project, cardClass) {
                     </div>`
                 }
                 <div class="portfolio-item-overlay">
-                    <span class="portfolio-item-category">${project.categoryLabel}</span>
-                    <h3 class="portfolio-item-title">${project.title}</h3>
-                    <p class="portfolio-item-description">${project.description}</p>
+                    <span class="portfolio-item-category">${getLocalizedField(project, 'categoryLabel')}</span>
+                    <h3 class="portfolio-item-title">${getLocalizedField(project, 'title')}</h3>
+                    <p class="portfolio-item-description">${getLocalizedField(project, 'description')}</p>
                 </div>
             </div>
         `;
@@ -580,9 +623,9 @@ function initProjectModal() {
                     <h3>Características</h3>
                     <div class="features-list"></div>
                 </div>
-                <div class="modal-technologies">
-                    <h3>Tecnologías Utilizadas</h3>
-                    <div class="technologies-tags"></div>
+                <div class="modal-benefits">
+                    <h3 class="benefits-title">Beneficios</h3>
+                    <div class="benefits-list"></div>
                 </div>
             </div>
             <div class="modal-footer">
@@ -657,12 +700,18 @@ function openProjectModal(projectId, clickedElement) {
 
     console.log('✅ Modal found, populating content...');
 
-    // Populate modal content
-    modal.querySelector('.modal-category').textContent = project.categoryLabel;
-    modal.querySelector('.modal-title').textContent = project.title;
-    modal.querySelector('.modal-client').textContent = `Cliente: ${project.client}`;
-    modal.querySelector('.modal-year').textContent = `Año: ${project.year}`;
-    modal.querySelector('.modal-description p').textContent = project.longDescription;
+    // Populate modal content with localized fields
+    modal.querySelector('.modal-category').textContent = getLocalizedField(project, 'categoryLabel');
+    modal.querySelector('.modal-title').textContent = getLocalizedField(project, 'title');
+
+    // Client and Year labels (translate these too)
+    const currentLang = window.i18n ? window.i18n.getCurrentLanguage() : 'es';
+    const clientLabel = currentLang === 'en' ? 'Client' : 'Cliente';
+    const yearLabel = currentLang === 'en' ? 'Year' : 'Año';
+
+    modal.querySelector('.modal-client').textContent = `${clientLabel}: ${project.client}`;
+    modal.querySelector('.modal-year').textContent = `${yearLabel}: ${project.year}`;
+    modal.querySelector('.modal-description p').textContent = getLocalizedField(project, 'longDescription');
 
     // Header gradient - mantener el gradiente como color de marca
     const modalHeader = modal.querySelector('.modal-header');
@@ -671,16 +720,18 @@ function openProjectModal(projectId, clickedElement) {
     // Populate gallery with images
     const mainImage = modal.querySelector('.modal-main-image');
     const thumbnails = modal.querySelector('.modal-thumbnails');
+    const localizedTitle = getLocalizedField(project, 'title');
+    const imageLabel = currentLang === 'en' ? 'image' : 'imagen';
 
     if (project.images && project.images.length > 0) {
         // Mostrar la primera imagen en el visor principal
-        mainImage.innerHTML = `<img src="${project.images[0]}" alt="${project.title}" style="width: 100%; height: auto; display: block; border-radius: 0.5rem;">`;
+        mainImage.innerHTML = `<img src="${project.images[0]}" alt="${localizedTitle}" style="width: 100%; height: auto; display: block; border-radius: 0.5rem;">`;
 
         // Si hay más de una imagen, crear miniaturas
         if (project.images.length > 1) {
             thumbnails.innerHTML = project.images.map((img, index) => `
                 <img src="${img}"
-                     alt="${project.title} - imagen ${index + 1}"
+                     alt="${localizedTitle} - ${imageLabel} ${index + 1}"
                      class="modal-thumbnail ${index === 0 ? 'active' : ''}"
                      data-index="${index}"
                      style="width: 80px; height: 80px; object-fit: cover; border-radius: 0.5rem; cursor: pointer; margin-right: 0.5rem; border: 2px solid ${index === 0 ? '#6366f1' : 'transparent'}; transition: all 0.3s ease;"
@@ -705,17 +756,39 @@ function openProjectModal(projectId, clickedElement) {
         thumbnails.innerHTML = '';
     }
 
-    // Features
+    // Features (use localized array if available)
     const featuresList = modal.querySelector('.features-list');
-    featuresList.innerHTML = project.features.map(feature =>
+    const localizedFeatures = getLocalizedField(project, 'features');
+    featuresList.innerHTML = localizedFeatures.map(feature =>
         `<div class="feature-item-modal">${feature}</div>`
     ).join('');
 
-    // Technologies
-    const techTags = modal.querySelector('.technologies-tags');
-    techTags.innerHTML = project.technologies.map(tech =>
-        `<span class="tech-tag">${tech}</span>`
-    ).join('');
+    // Benefits (reemplaza technologies para ser más útil al usuario final)
+    const benefitsList = modal.querySelector('.benefits-list');
+    const benefitsTitle = modal.querySelector('.benefits-title');
+
+    // Actualizar título según idioma
+    if (benefitsTitle) {
+        benefitsTitle.textContent = currentLang === 'en' ? 'Benefits' : 'Beneficios';
+    }
+
+    // Usar benefits si existe, sino fallback a un array vacío
+    const benefitsSection = modal.querySelector('.modal-benefits');
+    const localizedBenefits = getLocalizedField(project, 'benefits');
+
+    if (localizedBenefits && Array.isArray(localizedBenefits) && localizedBenefits.length > 0) {
+        benefitsList.innerHTML = localizedBenefits.map(benefit =>
+            `<div class="benefit-item">${benefit}</div>`
+        ).join('');
+        if (benefitsSection) {
+            benefitsSection.style.display = 'block';
+        }
+    } else {
+        // Ocultar sección si no hay beneficios definidos
+        if (benefitsSection) {
+            benefitsSection.style.display = 'none';
+        }
+    }
 
     // Update explore button URL (botón para ver el proyecto terminado)
     const exploreBtn = modal.querySelector('#modal-explore-btn');
@@ -746,8 +819,17 @@ function openProjectModal(projectId, clickedElement) {
             // Obtener la URL del proyecto
             const projectUrl = project.url && project.url !== '#' && project.url !== '' ? project.url : '';
 
-            // Crear el mensaje de WhatsApp
-            let mensaje = `Me encantaría solicitar un proyecto similar a: *${project.title}*\n\n> Categoría: ${project.categoryLabel}`;
+            // Obtener campos localizados para el mensaje
+            const localizedTitle = getLocalizedField(project, 'title');
+            const localizedCategory = getLocalizedField(project, 'categoryLabel');
+
+            // Crear el mensaje de WhatsApp con textos localizados
+            const currentLang = window.i18n ? window.i18n.getCurrentLanguage() : 'es';
+            const messageText = currentLang === 'en'
+                ? `I would love to request a similar project to: *${localizedTitle}*\n\n> Category: ${localizedCategory}`
+                : `Me encantaría solicitar un proyecto similar a: *${localizedTitle}*\n\n> Categoría: ${localizedCategory}`;
+
+            let mensaje = messageText;
 
             // Si hay URL del proyecto, agregarla (WhatsApp generará la tarjeta automáticamente)
             if (projectUrl) {
@@ -755,12 +837,17 @@ function openProjectModal(projectId, clickedElement) {
             }
 
             // Agregar mensaje final
-            mensaje += `\n\nPor favor, me gustaría más información sobre un proyecto similar.`;
+            const finalText = currentLang === 'en'
+                ? `\n\nPlease, I would like more information about a similar project.`
+                : `\n\nPor favor, me gustaría más información sobre un proyecto similar.`;
+            mensaje += finalText;
 
             const mensajeEncoded = encodeURIComponent(mensaje);
 
-            // Número de WhatsApp (reemplaza con tu número real)
-            const whatsappNumber = '50587248446'; // Formato: código de país + número sin espacios ni símbolos
+            // Obtener número de WhatsApp según región detectada
+            const whatsappNumber = (typeof XinocoreConfig !== 'undefined' && XinocoreConfig.contact.whatsapp)
+                ? (XinocoreConfig.contact.whatsapp[window.detectedRegion] || XinocoreConfig.contact.whatsapp[XinocoreConfig.contact.whatsapp.default]).number
+                : '50587248446'; // Fallback al número original
 
             // Crear URL de WhatsApp
             const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${mensajeEncoded}`;
@@ -911,9 +998,76 @@ document.head.appendChild(style);
 // PORTFOLIO FILTERS SYSTEM
 // ========================================
 function initPortfolioFilters() {
-    const filterButtons = document.querySelectorAll('.filter-btn');
+    const filtersContainer = document.querySelector('.filters');
 
-    if (filterButtons.length === 0) return; // No estamos en portafolio.html
+    if (!filtersContainer) return; // No estamos en portafolio.html
+
+    console.log('🔵 Portfolio filters will be generated after projects load');
+}
+
+/**
+ * Genera los botones de filtro dinámicamente basándose en las categorías del JSON
+ */
+function generateDynamicFilters() {
+    const filtersContainer = document.querySelector('.filters');
+
+    if (!filtersContainer || projectsData.length === 0) {
+        console.log('⚠️ Cannot generate filters: no container or no projects');
+        return;
+    }
+
+    console.log('🔵 Generating dynamic filters from project categories...');
+
+    // Limpiar filtros existentes
+    filtersContainer.innerHTML = '';
+
+    // Obtener idioma actual
+    const currentLang = window.i18n ? window.i18n.getCurrentLanguage() : 'es';
+
+    // Crear botón "Todos"
+    const allButton = document.createElement('button');
+    allButton.className = 'filter-btn active';
+    allButton.setAttribute('data-filter', 'all');
+    allButton.textContent = currentLang === 'en' ? 'All' : 'Todos';
+    filtersContainer.appendChild(allButton);
+
+    // Extraer categorías únicas del JSON
+    const categoriesMap = new Map();
+
+    projectsData.forEach(project => {
+        if (!categoriesMap.has(project.category)) {
+            categoriesMap.set(project.category, {
+                category: project.category,
+                labelEs: project.categoryLabel,
+                labelEn: project.categoryLabel_en || project.categoryLabel
+            });
+        }
+    });
+
+    console.log('🔵 Found categories:', Array.from(categoriesMap.keys()));
+
+    // Crear botón para cada categoría
+    categoriesMap.forEach((catData, categoryKey) => {
+        const button = document.createElement('button');
+        button.className = 'filter-btn';
+        button.setAttribute('data-filter', categoryKey);
+        button.setAttribute('data-label-es', catData.labelEs);
+        button.setAttribute('data-label-en', catData.labelEn);
+        button.textContent = currentLang === 'en' ? catData.labelEn : catData.labelEs;
+        filtersContainer.appendChild(button);
+    });
+
+    // Agregar event listeners a los nuevos botones
+    setupFilterButtonListeners();
+
+    console.log('✅ Dynamic filters generated:', categoriesMap.size + 1, 'buttons');
+}
+
+/**
+ * Configura los event listeners para los botones de filtro
+ */
+function setupFilterButtonListeners() {
+    const filterButtons = document.querySelectorAll('.filter-btn');
 
     filterButtons.forEach(button => {
         button.addEventListener('click', function() {
@@ -942,7 +1096,29 @@ function initPortfolioFilters() {
         });
     });
 
-    console.log('✅ Portfolio filters initialized');
+    console.log('✅ Filter button listeners attached');
+}
+
+/**
+ * Actualiza los textos de los filtros cuando cambia el idioma
+ */
+function updateFilterLabels() {
+    const currentLang = window.i18n ? window.i18n.getCurrentLanguage() : 'es';
+    const filterButtons = document.querySelectorAll('.filter-btn');
+
+    filterButtons.forEach(button => {
+        const filter = button.getAttribute('data-filter');
+
+        if (filter === 'all') {
+            button.textContent = currentLang === 'en' ? 'All' : 'Todos';
+        } else {
+            const labelEs = button.getAttribute('data-label-es');
+            const labelEn = button.getAttribute('data-label-en');
+            button.textContent = currentLang === 'en' ? labelEn : labelEs;
+        }
+    });
+
+    console.log('✅ Filter labels updated for language:', currentLang);
 }
 
 function filterProjects(filter) {
@@ -1018,3 +1194,21 @@ function getFallbackProjects() {
         // More fallback projects...
     ];
 }
+
+// ========================================
+// I18N LANGUAGE CHANGE EVENT LISTENER
+// ========================================
+// Re-render projects when language changes
+window.addEventListener('languageChanged', function(e) {
+    console.log('[Projects] Language changed to:', e.detail.language);
+    console.log('[Projects] Re-rendering projects with new language...');
+
+    // Re-render projects in both pages
+    renderProjectsInIndex();
+    renderProjectsInPortfolio();
+
+    // Update filter labels (sin regenerar los filtros para mantener el estado activo)
+    updateFilterLabels();
+
+    console.log('[Projects] ✅ Projects re-rendered in new language');
+});

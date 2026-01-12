@@ -10,15 +10,86 @@ const XinocoreConfig = {
      * true = Mostrar logs en consola
      * false = Ocultar todos los logs (modo producción)
      */
-    development: false,
+    development: true,
 
     /**
      * Información de contacto
      */
     contact: {
-        phone: '+50587248446',
-        email: 'Dannyherrod@xinocore.com',
+        // Configuración multi-región para WhatsApp
+        whatsapp: {
+            nicaragua: {
+                number: '50587248446',      // Sin espacios ni símbolos
+                display: '+505 8724 8446',   // Con formato para mostrar
+                code: 'NI',                  // ISO code
+                flag: '🇳🇮'
+            },
+            usa: {
+                number: '18624600390',       // Sin espacios ni símbolos
+                display: '+1 (862) 460-0390',
+                code: 'US',
+                flag: '🇺🇸'
+            },
+            default: 'nicaragua'  // Fallback si todo falla
+        },
+        // Configuración multi-región para información de contacto general
+        regions: {
+            nicaragua: {
+                email: 'Dannyherrod@xinocore.com',
+                phone: '+505 8724 8446',
+                phonePlaceholder: 'Ej: +505 8724 8446',
+                location: 'Jinotega, Nicaragua'
+            },
+            usa: {
+                email: 'Alejandralanzas@xinocore.com',
+                phone: '+1 (862) 460-0390',
+                phonePlaceholder: 'Ex: +1 (862) 460-0390',
+                location: 'West Orange, NJ'
+            },
+            default: 'nicaragua'
+        },
+        phone: '+50587248446',  // Mantener por compatibilidad
+        email: 'Dannyherrod@xinocore.com',  // Mantener por compatibilidad
         location: 'Jinotega, Nicaragua'
+    },
+
+    /**
+     * Configuración de detección de región
+     */
+    geolocation: {
+        enabled: true,
+        api: {
+            url: 'https://ipapi.co/json/',
+            timeout: 3000,  // 3 segundos
+            retries: 1
+        },
+        cache: {
+            enabled: true,
+            key: 'xinocore_whatsapp_region',
+            duration: 30 * 24 * 60 * 60 * 1000  // 30 días en milisegundos
+        },
+        // Mapeo de países a números
+        countryMapping: {
+            'NI': 'nicaragua',  // Nicaragua
+            'US': 'usa',        // Estados Unidos
+            'CR': 'nicaragua',  // Costa Rica -> NI
+            'HN': 'nicaragua',  // Honduras -> NI
+            'SV': 'nicaragua',  // El Salvador -> NI
+            'GT': 'nicaragua',  // Guatemala -> NI
+            'MX': 'usa',        // México -> USA
+            'CA': 'usa'         // Canadá -> USA
+        }
+    },
+
+    /**
+     * Configuración de internacionalización (i18n)
+     */
+    i18n: {
+        enabled: true,
+        defaultLanguage: 'es',
+        supportedLanguages: ['es', 'en'],
+        autoDetect: true,  // Detectar idioma del navegador
+        storageKey: 'xinocore_language'
     },
 
     /**
